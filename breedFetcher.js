@@ -1,48 +1,25 @@
-const fs = require('fs');
 const request = require('request');
 
-process.stdin.setEncoding('utf8');
+const fetchBreedDescription = function(breedName, callback) {
 
-const URL = function(breed) {
-  const address = 'https://api.thecatapi.com/v1/breeds/search?q=';
-  let answer = '';
-  answer = address + breed;
-  return answer; // URL + Breed
+  const url = `https://api.thecatapi.com/v1/breeds/search?q=${breedName}`;
+  request(url, (error, resp, body) => {
+
+    if (error) {
+      callback(`Something went wrong!: ${error}`,null);
+    }
+
+    const data = JSON.parse(body);
+
+    const breed = data[0];
+    if (breed) {
+      callback(null,breed.description);
+    } else {
+      callback(`Oops! ${breedName} not found! Try it again!`,null);
+    }
+  });
+
 };
 
-const breedName = process.argv.slice(2);    // Get user input
 
-request(URL(breedName) , (error, response, body) => {
-
-  fs.writeFile('description.txt', error, function(err) {
-    if (!err) {
-      console.log('');
-    } else {
-      console.log(err);
-    }
-  });
-
-  const data = JSON.parse(body);
-  if (data.length === 0) {
-    console.log("Oops! Breed not found! Try it again!"); // Breed not found
-    return;
-  }
-
-  console.log(data[0].description);    // Description
-  console.log(typeof data);
-
-  fs.writeFile('description.txt', body, function(err) {
-    if (!err) {
-      console.log('');
-    } else {
-      console.log('something went wrong!');
-    }
-  });
-
-});
-
-
-
-
-
-
+module.exports = { fetchBreedDescription };
